@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سیستم مدیریت شرکت محافظ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        /* استایل صفحه لاگین */
+        .auth-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-logo {
+            width: 80px;
+            height: 80px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .btn-auth {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            color: white;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .main-system {
+            display: none;
+        }
+
+        /* استایل‌های اصلی سیستم */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+        }
+
+        .user-badge {
+            background: var(--success-color);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-right: 10px;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        #guards {
+            display: block;
+        }
+
+        .guard-item, .shift-item, .incident-item, .leave-item {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .guard-item:hover, .shift-item:hover, .incident-item:hover, .leave-item:hover {
+            background: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .badge {
+            font-size: 0.75em;
+            margin: 2px;
+        }
+
+        .profile-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--secondary-color);
+        }
+
+        .list-group-item {
+            border: none;
+            padding: 15px 20px;
+            font-weight: 600;
+            border-radius: 10px !important;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .list-group-item:hover {
+            background: #e9ecef;
+        }
+
+        .list-group-item.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border-color: var(--secondary-color);
+        }
+
+        .auto-save-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--success-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .shift-badge {
+            padding: 6px 12px;
+            font-size: 0.85em;
+        }
+
+        .day-shift {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .night-shift {
+            background-color: #343a40;
+            color: #fff;
+        }
+
+        .day-night-shift {
+            background-color: #0dcaf0;
+            color: #000;
+        }
+
+        .severity-low { background-color: #198754; color: white; }
+        .severity-medium { background-color: #ffc107; color: #000; }
+        .severity-high { background-color: #fd7e14; color: white; }
+        .severity-critical { background-color: #dc3545; color: white; }
+        .status-pending { background-color: #6c757d; color: white; }
+        .status-approved { background-color: #198754; color: white; }
+        .status-rejected { background-color: #dc3545; color: white; }
+        .status-reported { background-color: #0dcaf0; color: #000; }
+
+        .role-admin { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .role-manager { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .role-guard { background: linear-gradient(135deg, #27ae60, #229954); }
+
+        .chart-bar {
+            background: #0d6efd;
+            height: 20px;
+            margin: 5px 0;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .activity-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .auth-card {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+            
+            .guard-item, .shift-item, .incident-item, .leave-item {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .auth-card {
+                padding: 25px 15px;
+            }
+            
+            .section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- نشانگر ذخیره خودکار -->
+    <div class="auto-save-indicator" id="saveIndicator">
+        <i class="fas fa-check-circle"></i> داده‌ها ذخیره شد
+    </div>
+
+    <!-- سیستم لاگین -->
+    <div id="loginSystem" class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>ورود به سیستم</h3>
+                <p class="text-muted">لطفا اطلاعات کاربری خود را وارد کنید</p>
+            </div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">شماره تماس</label>
+                    <input type="text" class="form-control" id="loginPhone" required value="0780060833">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">رمز عبور</label>
+                    <input type="password" class="form-control" id="loginPassword" required value="admin123">
+                </div>
+                <button type="submit" class="btn btn-auth mb-3">
+                    <i class="fas fa-sign-in-alt"></i> ورود به سیستم
+                </button>
+                
+                <div class="alert alert-info">
+                    <small>
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>اطلاعات پیشفرض ادمین:</strong><br>
+                        شماره: 0780060833 | رمز: admin123
+                    </small>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- سیستم اصلی -->
+    <div id="mainSystem" class="main-system">
+        <!-- نوار بالایی -->
+        <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">
+                    <i class="fas fa-shield-alt"></i> سیستم مدیریت شرکت محافظ
+                    <small class="fs-6 d-block">
+                        <span id="userWelcome">خوش آمدید</span>
+                        <span id="userBadge" class="user-badge"></span>
+                    </small>
+                </span>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <div class="navbar-nav ms-auto d-flex align-items-center">
+                        <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> خروج
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid mt-4">
+            <div class="row">
+                <!-- منوی کناری -->
+                <div class="col-md-3 col-12 mb-4">
+                    <div class="list-group">
+                        <a href="#guards" class="list-group-item list-group-item-action active" onclick="showSection('guards')">
+                            <i class="fas fa-users"></i> مدیریت محافظان
+                        </a>
+                        <a href="#shifts" class="list-group-item list-group-item-action" onclick="showSection('shifts')">
+                            <i class="fas fa-calendar-alt"></i> مدیریت شیفت‌ها
+                        </a>
+                        <a href="#incidents" class="list-group-item list-group-item-action" onclick="showSection('incidents')">
+                            <i class="fas fa-exclamation-triangle"></i> گزارش حوادث
+                        </a>
+                        <a href="#leaves" class="list-group-item list-group-item-action" onclick="showSection('leaves')">
+                            <i class="fas fa-umbrella-beach"></i> مدیریت مرخصی
+                        </a>
+                        <a href="#reports" class="list-group-item list-group-item-action" onclick="showSection('reports')">
+                            <i class="fas fa-chart-bar"></i> گزارشات
+                        </a>
+                    </div>
+                </div>
+
+                <!-- محتوای اصلی -->
+                <div class="col-md-9 col-12">
+                    <!-- بخش مدیریت محافظان -->
+                    <div id="guards" class="section">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4><i class="fas fa-users"></i> مدیریت محافظان</h4>
+                            <button id="addGuardBtn" class="btn btn-success" onclick="showAddGuardForm()">
+                                <i class="fas fa-user-plus"></i> افزودن محافظ
+                            </button>
+                        </div>
+
+                        <!-- فرم افزودن محافظ -->
+                        <div id="addGuardForm" class="card mb-4" style="display: none;">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">ثبت محافظ جدید</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="guardForm" class="row g-3">
+                                    <div class="col-md-4 col-12">
+                                        <label class="form-label">نام</label>
+                                        <input type="text" class="form-control" id="firstName" required>
+                                    </div>
+                                    <div class="col-md-4 col-12">
+                                        <label class="form-label">تخلص</label>
+                                        <input type="text" class="form-control" id="lastName" required>
+                                    </div>
+                                    <div class="col-md-4 col-12">
+                                        <label class="form-label">نام پدر</label>
+                                        <input type="text" class="form-control" id="fatherName" required>
+                                    </div>
+                                    
+                                    <div class="col-md-6 col-12">
+                                        <label class="form-label">شماره تماس</label>
+                                        <input type="text" class="form-control" id="phoneNumber" required>
+                                    </div>
+                                    <div class="col-md-6 col-12">
+                                        <label class="form-label">رمز عبور</label>
+                                        <input type="password" class="form-control" id="guardPassword" required>
+                                    </div>
+
+                                    <div class="col-md-6 col-12">
+                                        <label class="form-label">رتبه</label>
+                                        <select class="form-select" id="position" required>
+                                            <option value="Guard">ګارد - Guard</option>
+                                            <option value="Officer">افسر - Officer</option>
+                                            <option value="Second_Lieutenant">ساتنمن - Second Lieutenant</option>
+                                            <option value="First_Lieutenant">لومړی ساتنمن - First Lieutenant</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 col-12">
+                                        <label class="form-label">نقش کاربر</label>
+                                        <select class="form-select" id="userRole" required>
+                                            <option value="guard">محافظ</option>
+                                            <option value="manager">مدیر</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6 col-12">
+                                        <label class="form-label">تاریخ استخدام</label>
+                                        <input type="date" class="form-control" id="hireDate" required>
+                                    </div>
+                                    <div class="col-md-6 col-12">
+                                        <label class="form-label">عکس پروفایل (اختیاری)</label>
+                                        <input type="file" class="form-control" id="profilePhoto" accept="image/*">
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-success me-2">
+                                            <i class="fas fa-save"></i> ثبت محافظ
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" onclick="hideAddGuardForm()">
+                                            <i class="fas fa-times"></i> لغو
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <h5><i class="fas fa-list"></i> لیست محافظان</h5>
+                        <div id="guardsList" class="mt-3"></div>
+                    </div>
+
+                    <!-- بخش مدیریت شیفت‌ها -->
+                    <div id="shifts" class="section">
+                        <h4><i class="fas fa-calendar-plus"></i> برنامه‌ریزی شیفت جدید</h4>
+                        <form id="shiftForm" class="row g-3">
+                            <div class="col-md-6 col-12">
+                                <label class="form-label">انتخاب محافظ</label>
+                                <select class="form-select" id="shiftGuard" required>
+                                    <option value="">انتخاب محافظ...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-12">
+                                <label class="form-label">تاریخ شیفت</label>
+                                <input type="date" class="form-control" id="shiftDate" required>
+                            </div>
+                            <div class="col-md-4 col-12">
+                                <label class="form-label">زمان شروع</label>
+                                <input type="time" class="form-control" id="startTime" required>
+                            </div>
+                            <div class="col-md-4 col-12">
+                                <label class="form-label">زمان پایان</label>
+                                <input type="time" class="form-control" id="endTime" required>
+                            </div>
+                            <div class="col-md-4 col-12">
+                                <label class="form-label">نوع شیفت</label>
+                                <select class="form-select" id="shiftType" required>
+                                    <option value="Day">شیفت روز</option>
+                                    <option value="Night">شیفت شب</option>
+                                    <option value="Day-Night">شیفت روز و شب</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> افزودن شیفت
+                                </button>
+                            </div>
+                        </form>
+
+                        <hr>
+                        <h5><i class="fas fa-calendar-day"></i> شیفت‌های امروز</h5>
+                        <div id="todayShiftsList" class="mt-3"></div>
+                        
+                        <h5 class="mt-4"><i class="fas fa-calendar-week"></i> تمام شیفت‌ها</h5>
+                        <div id="allShiftsList" class="mt-3"></div>
+                    </div>
+
+                    <!-- بخش گزارش حوادث -->
+                    <div id="incidents" class="section">
+                        <h4><i class="fas fa-exclamation-circle"></i> گزارش حادثه جدید</h4>
+                        <form id="incidentForm" class="row g-3">
+                            <div class="col-md-6 col-12">
+                                <label class="form-label">محافظ مسئول</label>
+                                <select class="form-select" id="incidentGuard" required>
+                                    <option value="">انتخاب محافظ...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-12">
+                                <label class="form-label">تاریخ و زمان حادثه</label>
+                                <input type="datetime-local" class="form-control" id="incidentDateTime" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">عنوان حادثه</label>
+                                <input type="text" class="form-control" id="incidentTitle" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">شرح کامل حادثه</label>
+                                <textarea class="form-control" id="incidentDescription" rows="3" required></textarea>
+                            </div>
+                            <div class="col-md-6 col-12">
+                                <label class="form-label">سطح اهمیت</label>
+                                <select class="form-select" id="incidentSeverity" required>
+                                    <option value="Low">کم</option>
+                                    <option value="Medium">متوسط</option>
+                                    <option value="High">زیاد</option>
+                                    <option value="Critical">بحرانی</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-exclamation-triangle"></i> ثبت حادثه
+                                </button>
+                            </div>
+                        </form>
+
+                        <hr>
+                        <h5><i class="fas fa-history"></i> تاریخچه حوادث</h5>
+                        <div id="incidentsList" class="mt-3"></div>
+                    </div>
+
+                    <!-- بخش مدیریت مرخصی -->
+                    <div id="leaves" class="section">
+                        <h4><i class="fas fa-file-signature"></i> درخواست مرخصی جدید</h4>
+                        <form id="leaveForm" class="row g-3">
+                            <div class="col-md-6 col-12">
+                                <label class="form-label">محافظ</label>
+                                <select class="form-select" id="leaveGuard" required>
+                                    <option value="">انتخاب محافظ...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-12">
+                                <label class="form-label">نوع مرخصی</label>
+                                <select class="form-select" id="leaveType" required>
+                                    <option value="Annual">مرخصی روزانه</option>
+                                    <option value="Sick">مرخصی مریضی</option>
+                                    <option value="Emergency">مرخصی اضطراری</option>
+                                    <option value="Maternity">مرخصی زایمان</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-12">
+                                <label class="form-label">تاریخ شروع</label>
+                                <input type="date" class="form-control" id="leaveStart" required>
+                            </div>
+                            <div class="col-md-6 col-12">
+                                <label class="form-label">تاریخ پایان</label>
+                                <input type="date" class="form-control" id="leaveEnd" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">علت مرخصی</label>
+                                <textarea class="form-control" id="leaveReason" rows="2" required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-info">
+                                    <i class="fas fa-paper-plane"></i> ثبت درخواست
+                                </button>
+                            </div>
+                        </form>
+
+                        <hr>
+                        <h5><i class="fas fa-clipboard-list"></i> درخواست‌های مرخصی</h5>
+                        <div id="leavesList" class="mt-3"></div>
+                    </div>
+
+                    <!-- بخش گزارشات -->
+                    <div id="reports" class="section">
+                        <h4><i class="fas fa-chart-pie"></i> گزارشات سیستم</h4>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="card text-white bg-primary h-100">
+                                    <div class="card-body text-center">
+                                        <h3 id="totalGuards">0</h3>
+                                        <p>تعداد کل محافظان</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="card text-white bg-success h-100">
+                                    <div class="card-body text-center">
+                                        <h3 id="todayShifts">0</h3>
+                                        <p>شیفت‌های امروز</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="card text-white bg-warning h-100">
+                                    <div class="card-body text-center">
+                                        <h3 id="totalIncidents">0</h3>
+                                        <p>حوادث ثبت شده</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="card text-white bg-info h-100">
+                                    <div class="card-body text-center">
+                                        <h3 id="pendingLeaves">0</h3>
+                                        <p>درخواست‌های مرخصی</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-6 col-12 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <i class="fas fa-chart-bar"></i> توزیع محافظان بر اساس رتبه
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="positionChart"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-12 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <i class="fas fa-chart-line"></i> فعالیت‌های اخیر
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="activityChart"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-6 col-12 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <i class="fas fa-exclamation-triangle"></i> توزیع حوادث بر اساس سطح اهمیت
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="severityChart"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-12 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <i class="fas fa-umbrella-beach"></i> وضعیت درخواست‌های مرخصی
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="leaveStatusChart"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // ==================== FIREBASE CONFIGURATION ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_s-rHStZQPzuEjb_FpClS3Aaac1sidYQ",
+            authDomain: "security-company-system.firebaseapp.com",
+            databaseURL: "https://guard-e5328-default-rtdb.firebaseio.com",
+            projectId: "security-company-system",
+            storageBucket: "security-company-system.firebasestorage.app",
+            messagingSenderId: "518820113373",
+            appId: "1:518820113373:web:087d0b4ad1c202d590a434"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // ==================== SYSTEM VARIABLES ====================
+        let currentUser = null;
+        let guards = [];
+        let shifts = [];
+        let incidents = [];
+        let leaves = [];
+
+        // ==================== INITIAL SETUP ====================
+        async function createDefaultAdmin() {
+            try {
+                const adminData = {
+                    phone: "0780060833",
+                    password: "admin123",
+                    role: "admin",
+                    firstName: "ذبیح الله",
+                    lastName: "کاکر",
+                    status: "active",
+                    createdAt: new Date().toISOString()
+                };
+                
+                const usersRef = database.ref('users');
+                const snapshot = await usersRef.once('value');
+                
+                let adminExists = false;
+                let adminKey = null;
+                
+                snapshot.forEach((child) => {
+                    const user = child.val();
+                    if (user.phone === "0780060833") {
+                        adminExists = true;
+                        adminKey = child.key;
+                    }
+                });
+                
+                if (adminExists && adminKey) {
+                    await usersRef.child(adminKey).set(adminData);
+                } else {
+                    await usersRef.push(adminData);
+                }
+                
+            } catch (error) {
+                console.error("Error creating admin:", error);
+            }
+        }
+
+        // ==================== LOGIN SYSTEM ====================
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const phone = document.getElementById('loginPhone').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const usersRef = database.ref('users');
+                const snapshot = await usersRef.once('value');
+                
+                let userFound = null;
+                let userId = null;
+                
+                snapshot.forEach((child) => {
+                    const user = child.val();
+                    if (user.phone === phone && user.password === password) {
+                        userFound = user;
+                        userId = child.key;
+                    }
+                });
+                
+                if (userFound) {
+                    currentUser = { id: userId, ...userFound };
+                    
+                    showMainSystem();
+                    setupUserInterface();
+                    loadAllData();
+                } else {
+                    throw new Error('شماره تماس یا رمز عبور اشتباه است');
+                }
+                
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        function showMainSystem() {
+            document.getElementById('loginSystem').style.display = 'none';
+            document.getElementById('mainSystem').style.display = 'block';
+        }
+
+        function showLoginSystem() {
+            document.getElementById('loginSystem').style.display = 'flex';
+            document.getElementById('mainSystem').style.display = 'none';
+            currentUser = null;
+        }
+
+        function setupUserInterface() {
+            document.getElementById('userWelcome').textContent = `خوش آمدید، ${currentUser.firstName}`;
+            document.getElementById('userBadge').textContent = getRoleText(currentUser.role);
+            document.getElementById('userBadge').className = `user-badge role-${currentUser.role}`;
+            
+            if (currentUser.role !== 'admin') {
+                document.getElementById('addGuardBtn').style.display = 'none';
+            }
+        }
+
+        function getRoleText(role) {
+            const roles = {
+                'admin': 'مدیر سیستم',
+                'manager': 'مدیر',
+                'guard': 'محافظ'
+            };
+            return roles[role] || role;
+        }
+
+        function logout() {
+            if (confirm('آیا از سیستم خارج می‌شوید؟')) {
+                showLoginSystem();
+            }
+        }
+
+        // ==================== DATA MANAGEMENT ====================
+        function loadAllData() {
+            loadGuards();
+            loadShifts();
+            loadIncidents();
+            loadLeaves();
+        }
+
+        function loadGuards() {
+            database.ref('guards').on('value', (snapshot) => {
+                guards = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => {
+                        guards.push({
+                            id: child.key,
+                            ...child.val()
+                        });
+                    });
+                }
+                loadGuardsList();
+                populateGuardDropdowns();
+                updateReports();
+            });
+        }
+
+        function loadShifts() {
+            database.ref('shifts').on('value', (snapshot) => {
+                shifts = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => {
+                        shifts.push({
+                            id: child.key,
+                            ...child.val()
+                        });
+                    });
+                }
+                loadShiftsList();
+                updateReports();
+            });
+        }
+
+        function loadIncidents() {
+            database.ref('incidents').on('value', (snapshot) => {
+                incidents = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => {
+                        incidents.push({
+                            id: child.key,
+                            ...child.val()
+                        });
+                    });
+                }
+                loadIncidentsList();
+                updateReports();
+            });
+        }
+
+        function loadLeaves() {
+            database.ref('leaves').on('value', (snapshot) => {
+                leaves = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => {
+                        leaves.push({
+                            id: child.key,
+                            ...child.val()
+                        });
+                    });
+                }
+                loadLeavesList();
+                updateReports();
+            });
+        }
+
+        // ==================== GUARD MANAGEMENT ====================
+        document.getElementById('guardForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const fatherName = document.getElementById('fatherName').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const password = document.getElementById('guardPassword').value;
+            const position = document.getElementById('position').value;
+            const userRole = document.getElementById('userRole').value;
+            const hireDate = document.getElementById('hireDate').value;
+
+            try {
+                // Check if phone exists
+                const usersSnapshot = await database.ref('users').once('value');
+                let phoneExists = false;
+                
+                usersSnapshot.forEach((child) => {
+                    const user = child.val();
+                    if (user.phone === phoneNumber) {
+                        phoneExists = true;
+                    }
+                });
+                
+                if (phoneExists) {
+                    alert('این شماره تماس قبلاً ثبت شده است');
+                    return;
+                }
+
+                // Create guard data
+                const guardData = {
+                    firstName: firstName,
+                    lastName: lastName,
+                    fatherName: fatherName,
+                    phoneNumber: phoneNumber,
+                    position: position,
+                    role: userRole,
+                    hireDate: hireDate,
+                    createdAt: new Date().toISOString(),
+                    createdBy: currentUser.id
+                };
+
+                // Create user account
+                const userData = {
+                    phone: phoneNumber,
+                    password: password,
+                    role: userRole,
+                    firstName: firstName,
+                    lastName: lastName,
+                    position: position,
+                    status: 'active',
+                    createdAt: new Date().toISOString(),
+                    createdBy: currentUser.id
+                };
+
+                await database.ref('guards').push(guardData);
+                await database.ref('users').push(userData);
+
+                document.getElementById('guardForm').reset();
+                hideAddGuardForm();
+                showSaveIndicator();
+                
+                alert(`✅ ${userRole === 'manager' ? 'مدیر' : 'محافظ'} جدید ثبت شد!\n\nشماره: ${phoneNumber}\nرمز: ${password}`);
+
+            } catch (error) {
+                alert('خطا در ثبت: ' + error.message);
+            }
+        });
+
+        function loadGuardsList() {
+            const container = document.getElementById('guardsList');
+            container.innerHTML = '';
+
+            if (guards.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">هیچ محافظی ثبت نشده است</div>';
+                return;
+            }
+
+            guards.forEach(guard => {
+                const positionText = getPositionText(guard.position);
+                const serviceYears = calculateServiceYears(guard.hireDate);
+
+                const guardItem = document.createElement('div');
+                guardItem.className = 'guard-item';
+                guardItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="profile-photo bg-light d-flex align-items-center justify-content-center">
+                                <i class="fas fa-user text-muted"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h6 class="mb-1">${guard.firstName} ${guard.lastName}</h6>
+                                <small class="text-muted">📞 ${guard.phoneNumber} | 📅 ${guard.hireDate}</small>
+                                <br>
+                                <span class="badge bg-primary">${positionText}</span>
+                                <span class="badge bg-secondary">${serviceYears} سال خدمت</span>
+                                <span class="badge ${guard.role === 'manager' ? 'bg-warning' : 'bg-info'}">${getRoleText(guard.role)}</span>
+                            </div>
+                        </div>
+                        ${currentUser.role === 'admin' ? `
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteGuard('${guard.id}', '${guard.phoneNumber}')">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+                container.appendChild(guardItem);
+            });
+        }
+
+        async function deleteGuard(guardId, phoneNumber) {
+            if (!confirm('آیا از حذف این کاربر مطمئن هستید؟')) return;
+
+            try {
+                await database.ref('guards/' + guardId).remove();
+                
+                const usersSnapshot = await database.ref('users').once('value');
+                usersSnapshot.forEach((child) => {
+                    const user = child.val();
+                    if (user.phone === phoneNumber && user.role !== 'admin') {
+                        database.ref('users/' + child.key).remove();
+                    }
+                });
+                
+                showSaveIndicator();
+                alert('کاربر با موفقیت حذف شد');
+            } catch (error) {
+                alert('خطا در حذف کاربر: ' + error.message);
+            }
+        }
+
+        // ==================== SHIFT MANAGEMENT ====================
+        function populateGuardDropdowns() {
+            const dropdowns = ['shiftGuard', 'incidentGuard', 'leaveGuard'];
+            dropdowns.forEach(dropdownId => {
+                const select = document.getElementById(dropdownId);
+                select.innerHTML = '<option value="">انتخاب محافظ...</option>';
+                guards.forEach(guard => {
+                    select.innerHTML += `<option value="${guard.id}">${guard.firstName} ${guard.lastName}</option>`;
+                });
+            });
+        }
+
+        document.getElementById('shiftForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const guardId = document.getElementById('shiftGuard').value;
+            const shiftDate = document.getElementById('shiftDate').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const shiftType = document.getElementById('shiftType').value;
+
+            const guard = guards.find(g => g.id === guardId);
+            if (!guard) {
+                alert('لطفا محافظ را انتخاب کنید');
+                return;
+            }
+
+            try {
+                const shiftData = {
+                    guardId: guardId,
+                    guardName: `${guard.firstName} ${guard.lastName}`,
+                    date: shiftDate,
+                    startTime: startTime,
+                    endTime: endTime,
+                    type: shiftType,
+                    status: 'Scheduled',
+                    createdAt: new Date().toISOString(),
+                    createdBy: currentUser.id
+                };
+
+                await database.ref('shifts').push(shiftData);
+                document.getElementById('shiftForm').reset();
+                showSaveIndicator();
+                alert('✅ شیفت جدید با موفقیت ثبت شد!');
+
+            } catch (error) {
+                alert('خطا در ثبت شیفت: ' + error.message);
+            }
+        });
+
+        function loadShiftsList() {
+            const todayContainer = document.getElementById('todayShiftsList');
+            const allContainer = document.getElementById('allShiftsList');
+            
+            todayContainer.innerHTML = '';
+            allContainer.innerHTML = '';
+
+            const today = new Date().toISOString().split('T')[0];
+            const todayShifts = shifts.filter(shift => shift.date === today);
+            const allShifts = shifts.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (todayShifts.length === 0) {
+                todayContainer.innerHTML = '<div class="alert alert-info">هیچ شیفتی برای امروز برنامه‌ریزی نشده است</div>';
+            } else {
+                todayShifts.forEach(shift => {
+                    todayContainer.appendChild(createShiftItem(shift));
+                });
+            }
+
+            if (allShifts.length === 0) {
+                allContainer.innerHTML = '<div class="alert alert-info">هیچ شیفتی ثبت نشده است</div>';
+            } else {
+                allShifts.forEach(shift => {
+                    allContainer.appendChild(createShiftItem(shift));
+                });
+            }
+        }
+
+        function createShiftItem(shift) {
+            const shiftTypeClass = shift.type === 'Day' ? 'day-shift' : 
+                                 shift.type === 'Night' ? 'night-shift' : 'day-night-shift';
+            const shiftTypeText = shift.type === 'Day' ? 'شیفت روز' : 
+                                shift.type === 'Night' ? 'شیفت شب' : 'شیفت روز و شب';
+
+            const shiftItem = document.createElement('div');
+            shiftItem.className = 'shift-item';
+            shiftItem.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">${shift.guardName}</h6>
+                        <small class="text-muted">📅 ${shift.date} | 🕒 ${shift.startTime} - ${shift.endTime}</small>
+                        <br>
+                        <span class="badge shift-badge ${shiftTypeClass}">${shiftTypeText}</span>
+                        <span class="badge bg-success">${shift.status}</span>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteShift('${shift.id}')">
+                        <i class="fas fa-trash"></i> حذف
+                    </button>
+                </div>
+            `;
+            return shiftItem;
+        }
+
+        async function deleteShift(shiftId) {
+            if (!confirm('آیا از حذف این شیفت مطمئن هستید؟')) return;
+
+            try {
+                await database.ref('shifts/' + shiftId).remove();
+                showSaveIndicator();
+                alert('شیفت با موفقیت حذف شد');
+            } catch (error) {
+                alert('خطا در حذف شیفت: ' + error.message);
+            }
+        }
+
+        // ==================== INCIDENT MANAGEMENT ====================
+        document.getElementById('incidentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const guardId = document.getElementById('incidentGuard').value;
+            const dateTime = document.getElementById('incidentDateTime').value;
+            const title = document.getElementById('incidentTitle').value;
+            const description = document.getElementById('incidentDescription').value;
+            const severity = document.getElementById('incidentSeverity').value;
+
+            const guard = guards.find(g => g.id === guardId);
+            if (!guard) {
+                alert('لطفا محافظ را انتخاب کنید');
+                return;
+            }
+
+            try {
+                const incidentData = {
+                    guardId: guardId,
+                    guardName: `${guard.firstName} ${guard.lastName}`,
+                    dateTime: dateTime,
+                    title: title,
+                    description: description,
+                    severity: severity,
+                    status: 'Reported',
+                    createdAt: new Date().toISOString(),
+                    createdBy: currentUser.id
+                };
+
+                await database.ref('incidents').push(incidentData);
+                document.getElementById('incidentForm').reset();
+                showSaveIndicator();
+                alert('✅ حادثه جدید با موفقیت ثبت شد!');
+
+            } catch (error) {
+                alert('خطا در ثبت حادثه: ' + error.message);
+            }
+        });
+
+        function loadIncidentsList() {
+            const container = document.getElementById('incidentsList');
+            container.innerHTML = '';
+
+            if (incidents.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">هیچ حادثه‌ای ثبت نشده است</div>';
+                return;
+            }
+
+            incidents.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime)).forEach(incident => {
+                const severityClass = `severity-${incident.severity.toLowerCase()}`;
+                const severityText = getSeverityText(incident.severity);
+
+                const incidentItem = document.createElement('div');
+                incidentItem.className = 'incident-item';
+                incidentItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div style="flex: 1;">
+                            <h6 class="mb-1">${incident.title}</h6>
+                            <small class="text-muted">👮 ${incident.guardName} | 📅 ${new Date(incident.dateTime).toLocaleString('fa-IR')}</small>
+                            <p class="mt-2 mb-1">${incident.description}</p>
+                            <span class="badge ${severityClass}">${severityText}</span>
+                            <span class="badge status-reported">${incident.status}</span>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteIncident('${incident.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(incidentItem);
+            });
+        }
+
+        async function deleteIncident(incidentId) {
+            if (!confirm('آیا از حذف این حادثه مطمئن هستید؟')) return;
+
+            try {
+                await database.ref('incidents/' + incidentId).remove();
+                showSaveIndicator();
+                alert('حادثه با موفقیت حذف شد');
+            } catch (error) {
+                alert('خطا در حذف حادثه: ' + error.message);
+            }
+        }
+
+        // ==================== LEAVE MANAGEMENT ====================
+        document.getElementById('leaveForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const guardId = document.getElementById('leaveGuard').value;
+            const startDate = document.getElementById('leaveStart').value;
+            const endDate = document.getElementById('leaveEnd').value;
+            const type = document.getElementById('leaveType').value;
+            const reason = document.getElementById('leaveReason').value;
+
+            const guard = guards.find(g => g.id === guardId);
+            if (!guard) {
+                alert('لطفا محافظ را انتخاب کنید');
+                return;
+            }
+
+            try {
+                const leaveData = {
+                    guardId: guardId,
+                    guardName: `${guard.firstName} ${guard.lastName}`,
+                    startDate: startDate,
+                    endDate: endDate,
+                    type: type,
+                    reason: reason,
+                    status: 'Pending',
+                    createdAt: new Date().toISOString(),
+                    createdBy: currentUser.id
+                };
+
+                await database.ref('leaves').push(leaveData);
+                document.getElementById('leaveForm').reset();
+                showSaveIndicator();
+                alert('✅ درخواست مرخصی با موفقیت ثبت شد!');
+
+            } catch (error) {
+                alert('خطا در ثبت درخواست مرخصی: ' + error.message);
+            }
+        });
+
+        function loadLeavesList() {
+            const container = document.getElementById('leavesList');
+            container.innerHTML = '';
+
+            if (leaves.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">هیچ درخواست مرخصی ثبت نشده است</div>';
+                return;
+            }
+
+            leaves.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(leave => {
+                const statusClass = `status-${leave.status.toLowerCase()}`;
+                const statusText = getStatusText(leave.status);
+                const typeText = getLeaveTypeText(leave.type);
+
+                const leaveItem = document.createElement('div');
+                leaveItem.className = 'leave-item';
+                leaveItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">${leave.guardName}</h6>
+                            <small class="text-muted">📅 ${leave.startDate} تا ${leave.endDate}</small>
+                            <br>
+                            <span class="badge bg-info">${typeText}</span>
+                            <span class="badge ${statusClass}">${statusText}</span>
+                            <br>
+                            <small class="text-muted">${leave.reason}</small>
+                        </div>
+                        <div>
+                            ${leave.status === 'Pending' && currentUser.role !== 'guard' ? `
+                                <button class="btn btn-sm btn-success mt-1" onclick="updateLeaveStatus('${leave.id}', 'Approved')">
+                                    <i class="fas fa-check"></i> تایید
+                                </button>
+                                <button class="btn btn-sm btn-danger mt-1" onclick="updateLeaveStatus('${leave.id}', 'Rejected')">
+                                    <i class="fas fa-times"></i> رد
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-sm btn-outline-danger mt-1" onclick="deleteLeave('${leave.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(leaveItem);
+            });
+        }
+
+        async function updateLeaveStatus(leaveId, status) {
+            try {
+                await database.ref('leaves/' + leaveId).update({ status: status });
+                showSaveIndicator();
+                alert(`✅ درخواست مرخصی ${status === 'Approved' ? 'تایید' : 'رد'} شد!`);
+            } catch (error) {
+                alert('خطا در بروزرسانی وضعیت: ' + error.message);
+            }
+        }
+
+        async function deleteLeave(leaveId) {
+            if (!confirm('آیا از حذف این درخواست مرخصی مطمئن هستید؟')) return;
+
+            try {
+                await database.ref('leaves/' + leaveId).remove();
+                showSaveIndicator();
+                alert('درخواست مرخصی با موفقیت حذف شد');
+            } catch (error) {
+                alert('خطا در حذف درخواست مرخصی: ' + error.message);
+            }
+        }
+
+        // ==================== REPORTS ====================
+        function updateReports() {
+            // آمار کلی
+            document.getElementById('totalGuards').textContent = guards.length;
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('todayShifts').textContent = shifts.filter(s => s.date === today).length;
+            
+            document.getElementById('totalIncidents').textContent = incidents.length;
+            document.getElementById('pendingLeaves').textContent = leaves.filter(l => l.status === 'Pending').length;
+
+            // نمودار توزیع رتبه‌ها
+            updatePositionChart();
+            
+            // نمودار فعالیت‌ها
+            updateActivityChart();
+            
+            // نمودار سطح اهمیت حوادث
+            updateSeverityChart();
+            
+            // نمودار وضعیت مرخصی‌ها
+            updateLeaveStatusChart();
+        }
+
+        function updatePositionChart() {
+            const positionCounts = {};
+            guards.forEach(guard => {
+                positionCounts[guard.position] = (positionCounts[guard.position] || 0) + 1;
+            });
+
+            let positionChartHTML = '';
+            Object.keys(positionCounts).forEach(position => {
+                const count = positionCounts[position];
+                const percentage = guards.length > 0 ? ((count / guards.length) * 100).toFixed(1) : 0;
+                positionChartHTML += `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>${getPositionText(position)}</span>
+                        <span>${count} نفر (${percentage}%)</span>
+                    </div>
+                    <div class="chart-bar" style="width: ${percentage}%"></div>
+                `;
+            });
+            document.getElementById('positionChart').innerHTML = positionChartHTML || '<p class="text-muted">داده‌ای موجود نیست</p>';
+        }
+
+        function updateActivityChart() {
+            const today = new Date().toISOString().split('T')[0];
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            
+            const recentShifts = shifts.filter(s => new Date(s.date) >= weekAgo).length;
+            const recentIncidents = incidents.filter(i => new Date(i.dateTime) >= weekAgo).length;
+            const recentLeaves = leaves.filter(l => new Date(l.createdAt) >= weekAgo).length;
+
+            document.getElementById('activityChart').innerHTML = `
+                <div class="activity-item">
+                    <strong>شیفت‌های ۷ روز اخیر:</strong> ${recentShifts}
+                </div>
+                <div class="activity-item">
+                    <strong>حوادث ۷ روز اخیر:</strong> ${recentIncidents}
+                </div>
+                <div class="activity-item">
+                    <strong>درخواست‌های مرخصی ۷ روز اخیر:</strong> ${recentLeaves}
+                </div>
+                <div class="activity-item">
+                    <strong>شیفت‌های امروز:</strong> ${shifts.filter(s => s.date === today).length}
+                </div>
+            `;
+        }
+
+        function updateSeverityChart() {
+            const severityCounts = {
+                'Low': 0,
+                'Medium': 0,
+                'High': 0,
+                'Critical': 0
+            };
+
+            incidents.forEach(incident => {
+                severityCounts[incident.severity]++;
+            });
+
+            let severityChartHTML = '';
+            Object.keys(severityCounts).forEach(severity => {
+                const count = severityCounts[severity];
+                const percentage = incidents.length > 0 ? ((count / incidents.length) * 100).toFixed(1) : 0;
+                severityChartHTML += `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge severity-${severity.toLowerCase()}">${getSeverityText(severity)}</span>
+                        <span>${count} مورد (${percentage}%)</span>
+                    </div>
+                    <div class="chart-bar severity-${severity.toLowerCase()}" style="width: ${percentage}%"></div>
+                `;
+            });
+            document.getElementById('severityChart').innerHTML = severityChartHTML || '<p class="text-muted">داده‌ای موجود نیست</p>';
+        }
+
+        function updateLeaveStatusChart() {
+            const statusCounts = {
+                'Pending': 0,
+                'Approved': 0,
+                'Rejected': 0
+            };
+
+            leaves.forEach(leave => {
+                statusCounts[leave.status]++;
+            });
+
+            let leaveStatusHTML = '';
+            Object.keys(statusCounts).forEach(status => {
+                const count = statusCounts[status];
+                const percentage = leaves.length > 0 ? ((count / leaves.length) * 100).toFixed(1) : 0;
+                leaveStatusHTML += `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge status-${status.toLowerCase()}">${getStatusText(status)}</span>
+                        <span>${count} مورد (${percentage}%)</span>
+                    </div>
+                    <div class="chart-bar status-${status.toLowerCase()}" style="width: ${percentage}%"></div>
+                `;
+            });
+            document.getElementById('leaveStatusChart').innerHTML = leaveStatusHTML || '<p class="text-muted">داده‌ای موجود نیست</p>';
+        }
+
+        // ==================== HELPER FUNCTIONS ====================
+        function getPositionText(position) {
+            const positions = {
+                'Officer': 'افسر',
+                'Second_Lieutenant': 'ساتنمن',
+                'First_Lieutenant': 'لومړی ساتنمن', 
+                'Second_Lieutenant_Junior': 'دویم ساتنمن',
+                'Guard': 'ګارد'
+            };
+            return positions[position] || position;
+        }
+
+        function getSeverityText(severity) {
+            const severities = {
+                'Low': 'کم',
+                'Medium': 'متوسط',
+                'High': 'زیاد',
+                'Critical': 'بحرانی'
+            };
+            return severities[severity] || severity;
+        }
+
+        function getStatusText(status) {
+            const statuses = {
+                'Pending': 'در انتظار',
+                'Approved': 'تایید شده',
+                'Rejected': 'رد شده',
+                'Reported': 'گزارش شده'
+            };
+            return statuses[status] || status;
+        }
+
+        function getLeaveTypeText(type) {
+            const types = {
+                'Annual': 'مرخصی روزانه',
+                'Sick': 'مرخصی مریضی',
+                'Emergency': 'مرخصی اضطراری',
+                'Maternity': 'مرخصی زایمان'
+            };
+            return types[type] || type;
+        }
+
+        function calculateServiceYears(hireDate) {
+            const hire = new Date(hireDate);
+            const now = new Date();
+            const years = now.getFullYear() - hire.getFullYear();
+            return years > 0 ? years : 1;
+        }
+
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.style.display = 'block';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 3000);
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            document.querySelectorAll('.list-group-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            document.getElementById(sectionId).style.display = 'block';
+        }
+
+        function showAddGuardForm() {
+            document.getElementById('addGuardForm').style.display = 'block';
+        }
+
+        function hideAddGuardForm() {
+            document.getElementById('addGuardForm').style.display = 'none';
+            document.getElementById('guardForm').reset();
+        }
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            createDefaultAdmin();
+        });
+    </script>
+</body>
+</html>
