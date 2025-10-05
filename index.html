@@ -630,7 +630,7 @@
                     <div id="shifts" class="section">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h4><i class="fas fa-calendar-alt"></i> مدیریت شیفت‌ها</h4>
-                            <button class="btn btn-success" onclick="showAddShiftForm()">
+                            <button id="addShiftBtn" class="btn btn-success" onclick="showAddShiftForm()">
                                 <i class="fas fa-plus"></i> افزودن شیفت
                             </button>
                         </div>
@@ -713,7 +713,7 @@
                     <div id="incidents" class="section">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h4><i class="fas fa-exclamation-triangle"></i> گزارش حوادث</h4>
-                            <button class="btn btn-success" onclick="showAddIncidentForm()">
+                            <button id="addIncidentBtn" class="btn btn-success" onclick="showAddIncidentForm()">
                                 <i class="fas fa-plus"></i> گزارش حادثه جدید
                             </button>
                         </div>
@@ -809,7 +809,7 @@
                     <div id="leaves" class="section">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h4><i class="fas fa-umbrella-beach"></i> مدیریت مرخصی</h4>
-                            <button class="btn btn-success" onclick="showAddLeaveForm()">
+                            <button id="addLeaveBtn" class="btn btn-success" onclick="showAddLeaveForm()">
                                 <i class="fas fa-plus"></i> درخواست مرخصی جدید
                             </button>
                         </div>
@@ -1160,6 +1160,64 @@
         let currentEditingGuardId = null;
         let pendingGuardData = null;
 
+        // ==================== PERMISSION FUNCTIONS ====================
+        function hasPermission(action, section) {
+            if (!currentUser) return false;
+            
+            // Admin has all permissions
+            if (currentUser.role === 'admin') return true;
+            
+            // Manager permissions
+            if (currentUser.role === 'manager') {
+                const managerPermissions = {
+                    'guards': ['view', 'edit'],
+                    'shifts': ['view', 'create', 'edit', 'delete'],
+                    'incidents': ['view', 'create', 'edit', 'delete'],
+                    'leaves': ['view', 'create', 'edit', 'delete', 'approve'],
+                    'reports': ['view']
+                };
+                return managerPermissions[section]?.includes(action) || false;
+            }
+            
+            // Guard permissions
+            if (currentUser.role === 'guard') {
+                const guardPermissions = {
+                    'guards': ['view_own_profile'],
+                    'shifts': ['view'],
+                    'incidents': ['view'],
+                    'leaves': ['view'],
+                    'reports': ['view']
+                };
+                return guardPermissions[section]?.includes(action) || false;
+            }
+            
+            return false;
+        }
+
+        function setupPermissions() {
+            const userRole = currentUser.role;
+            
+            // Hide/show add buttons based on permissions
+            document.getElementById('addGuardBtn').style.display = 
+                hasPermission('create', 'guards') ? 'block' : 'none';
+            document.getElementById('addShiftBtn').style.display = 
+                hasPermission('create', 'shifts') ? 'block' : 'none';
+            document.getElementById('addIncidentBtn').style.display = 
+                hasPermission('create', 'incidents') ? 'block' : 'none';
+            document.getElementById('addLeaveBtn').style.display = 
+                hasPermission('create', 'leaves') ? 'block' : 'none';
+            
+            // Setup guard view based on role
+            if (userRole === 'guard') {
+                document.getElementById('adminGuardView').style.display = 'none';
+                document.getElementById('guardProfileView').style.display = 'block';
+                loadGuardProfile();
+            } else {
+                document.getElementById('adminGuardView').style.display = 'block';
+                document.getElementById('guardProfileView').style.display = 'none';
+            }
+        }
+
         // ==================== IMAGE HANDLING FUNCTIONS ====================
         function previewImage(input) {
             const preview = document.getElementById('imagePreview');
@@ -1303,6 +1361,7 @@
                     
                     showMainSystem();
                     setupUserInterface();
+                    setupPermissions();
                     loadAllData();
                 } else {
                     throw new Error('شماره تماس یا رمز عبور اشتباه است');
@@ -1328,19 +1387,6 @@
             document.getElementById('userWelcome').textContent = `خوش آمدید، ${currentUser.firstName}`;
             document.getElementById('userBadge').textContent = getRoleText(currentUser.role);
             document.getElementById('userBadge').className = `user-badge role-${currentUser.role}`;
-            
-            // نمایش رابط کاربری مناسب بر اساس نقش
-            if (currentUser.role === 'admin' || currentUser.role === 'manager') {
-                document.getElementById('adminGuardView').style.display = 'block';
-                document.getElementById('guardProfileView').style.display = 'none';
-                if (currentUser.role !== 'admin') {
-                    document.getElementById('addGuardBtn').style.display = 'none';
-                }
-            } else {
-                document.getElementById('adminGuardView').style.display = 'none';
-                document.getElementById('guardProfileView').style.display = 'block';
-                loadGuardProfile();
-            }
         }
 
         function getRoleText(role) {
@@ -1439,6 +1485,12 @@
         // ==================== GUARD MANAGEMENT ====================
         document.getElementById('guardForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            // Check permission
+            if (!hasPermission('create', 'guards')) {
+                alert('شما دسترسی لازم برای افزودن محافظ جدید را ندارید');
+                return;
+            }
             
             const firstName = document.getElementById('firstName').value;
             const lastName = document.getElementById('lastName').value;
@@ -1560,6 +1612,11 @@
 
         // DELETE GUARD FUNCTION - COMPLETELY REMOVES FROM ALL DATABASES
         async function deleteGuard(guardId, phoneNumber) {
+            if (!hasPermission('delete', 'guards')) {
+                alert('شما دسترسی لازم برای حذف محافظ را ندارید');
+                return;
+            }
+
             if (!confirm(`آیا از حذف محافظ با شماره ${phoneNumber} مطمئن هستید؟\nاین عمل غیرقابل بازگشت است!`)) {
                 return;
             }
@@ -1672,12 +1729,12 @@
                             </div>
                         </div>
                         <div>
-                            ${currentUser.role === 'admin' ? `
+                            ${hasPermission('delete', 'guards') ? `
                                 <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteGuard('${guard.id}', '${guard.phoneNumber}')">
                                     <i class="fas fa-trash"></i> حذف
                                 </button>
                             ` : ''}
-                            ${(currentUser.role === 'admin' || currentUser.role === 'manager') ? `
+                            ${hasPermission('edit', 'guards') ? `
                                 <button class="btn btn-sm btn-outline-warning" onclick="event.stopPropagation(); editGuard('${guard.id}')">
                                     <i class="fas fa-edit"></i> ویرایش
                                 </button>
@@ -1694,6 +1751,11 @@
 
         // FIXED: Edit guard function
         function editGuard(guardId) {
+            if (!hasPermission('edit', 'guards')) {
+                alert('شما دسترسی لازم برای ویرایش محافظ را ندارید');
+                return;
+            }
+
             currentEditingGuardId = guardId;
             const guard = guards.find(g => g.id === guardId);
             if (!guard) return;
@@ -1910,8 +1972,8 @@
             document.getElementById('guardDetailContent').innerHTML = modalContent;
             document.getElementById('guardDetailModalLabel').textContent = `جزئیات ${guard.firstName} ${guard.lastName}`;
             
-            // نمایش دکمه ویرایش فقط برای ادمین و مدیر
-            if (currentUser.role === 'admin' || currentUser.role === 'manager') {
+            // نمایش دکمه ویرایش فقط برای کاربران مجاز
+            if (hasPermission('edit', 'guards')) {
                 document.getElementById('editGuardBtn').style.display = 'block';
                 currentEditingGuardId = guardId;
             } else {
@@ -1932,6 +1994,10 @@
 
         // ==================== SHIFT MANAGEMENT ====================
         function showAddShiftForm() {
+            if (!hasPermission('create', 'shifts')) {
+                alert('شما دسترسی لازم برای افزودن شیفت را ندارید');
+                return;
+            }
             document.getElementById('addShiftForm').style.display = 'block';
         }
 
@@ -1942,6 +2008,11 @@
 
         document.getElementById('shiftForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            if (!hasPermission('create', 'shifts')) {
+                alert('شما دسترسی لازم برای افزودن شیفت را ندارید');
+                return;
+            }
             
             const guardId = document.getElementById('shiftGuardId').value;
             const shiftType = document.getElementById('shiftType').value;
@@ -2035,12 +2106,16 @@
                             </div>
                         </div>
                         <div>
-                            <button class="btn btn-sm btn-outline-warning" onclick="editShift('${shift.id}')">
-                                <i class="fas fa-edit"></i> ویرایش
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteShift('${shift.id}')">
-                                <i class="fas fa-trash"></i> حذف
-                            </button>
+                            ${hasPermission('edit', 'shifts') ? `
+                                <button class="btn btn-sm btn-outline-warning" onclick="editShift('${shift.id}')">
+                                    <i class="fas fa-edit"></i> ویرایش
+                                </button>
+                            ` : ''}
+                            ${hasPermission('delete', 'shifts') ? `
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteShift('${shift.id}')">
+                                    <i class="fas fa-trash"></i> حذف
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                     ${shift.description ? `<p class="mt-2 mb-0"><small>${shift.description}</small></p>` : ''}
@@ -2061,6 +2136,11 @@
         }
 
         async function deleteShift(shiftId) {
+            if (!hasPermission('delete', 'shifts')) {
+                alert('شما دسترسی لازم برای حذف شیفت را ندارید');
+                return;
+            }
+
             if (!confirm('آیا از حذف این شیفت مطمئن هستید؟')) {
                 return;
             }
@@ -2076,6 +2156,10 @@
 
         // ==================== INCIDENT MANAGEMENT ====================
         function showAddIncidentForm() {
+            if (!hasPermission('create', 'incidents')) {
+                alert('شما دسترسی لازم برای افزودن گزارش حادثه را ندارید');
+                return;
+            }
             document.getElementById('addIncidentForm').style.display = 'block';
         }
 
@@ -2086,6 +2170,11 @@
 
         document.getElementById('incidentForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            if (!hasPermission('create', 'incidents')) {
+                alert('شما دسترسی لازم برای افزودن گزارش حادثه را ندارید');
+                return;
+            }
             
             const guardId = document.getElementById('incidentGuardId').value;
             const title = document.getElementById('incidentTitle').value;
@@ -2180,12 +2269,16 @@
                             </div>
                         </div>
                         <div>
-                            <button class="btn btn-sm btn-outline-warning" onclick="editIncident('${incident.id}')">
-                                <i class="fas fa-edit"></i> ویرایش
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteIncident('${incident.id}')">
-                                <i class="fas fa-trash"></i> حذف
-                            </button>
+                            ${hasPermission('edit', 'incidents') ? `
+                                <button class="btn btn-sm btn-outline-warning" onclick="editIncident('${incident.id}')">
+                                    <i class="fas fa-edit"></i> ویرایش
+                                </button>
+                            ` : ''}
+                            ${hasPermission('delete', 'incidents') ? `
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteIncident('${incident.id}')">
+                                    <i class="fas fa-trash"></i> حذف
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                 `;
@@ -2205,6 +2298,11 @@
         }
 
         async function deleteIncident(incidentId) {
+            if (!hasPermission('delete', 'incidents')) {
+                alert('شما دسترسی لازم برای حذف گزارش حادثه را ندارید');
+                return;
+            }
+
             if (!confirm('آیا از حذف این گزارش حادثه مطمئن هستید؟')) {
                 return;
             }
@@ -2220,6 +2318,10 @@
 
         // ==================== LEAVE MANAGEMENT ====================
         function showAddLeaveForm() {
+            if (!hasPermission('create', 'leaves')) {
+                alert('شما دسترسی لازم برای افزودن درخواست مرخصی را ندارید');
+                return;
+            }
             document.getElementById('addLeaveForm').style.display = 'block';
         }
 
@@ -2230,6 +2332,11 @@
 
         document.getElementById('leaveForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            if (!hasPermission('create', 'leaves')) {
+                alert('شما دسترسی لازم برای افزودن درخواست مرخصی را ندارید');
+                return;
+            }
             
             const guardId = document.getElementById('leaveGuardId').value;
             const leaveType = document.getElementById('leaveType').value;
@@ -2321,7 +2428,7 @@
                             </div>
                         </div>
                         <div>
-                            ${(currentUser.role === 'admin' || currentUser.role === 'manager') && leave.status === 'Pending' ? `
+                            ${hasPermission('approve', 'leaves') && leave.status === 'Pending' ? `
                                 <button class="btn btn-sm btn-success" onclick="approveLeave('${leave.id}')">
                                     <i class="fas fa-check"></i> تایید
                                 </button>
@@ -2329,12 +2436,16 @@
                                     <i class="fas fa-times"></i> رد
                                 </button>
                             ` : ''}
-                            <button class="btn btn-sm btn-outline-warning" onclick="editLeave('${leave.id}')">
-                                <i class="fas fa-edit"></i> ویرایش
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteLeave('${leave.id}')">
-                                <i class="fas fa-trash"></i> حذف
-                            </button>
+                            ${hasPermission('edit', 'leaves') ? `
+                                <button class="btn btn-sm btn-outline-warning" onclick="editLeave('${leave.id}')">
+                                    <i class="fas fa-edit"></i> ویرایش
+                                </button>
+                            ` : ''}
+                            ${hasPermission('delete', 'leaves') ? `
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteLeave('${leave.id}')">
+                                    <i class="fas fa-trash"></i> حذف
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                 `;
@@ -2354,6 +2465,11 @@
         }
 
         async function approveLeave(leaveId) {
+            if (!hasPermission('approve', 'leaves')) {
+                alert('شما دسترسی لازم برای تایید مرخصی را ندارید');
+                return;
+            }
+
             try {
                 await database.ref('leaves/' + leaveId).update({
                     status: 'Approved',
@@ -2368,6 +2484,11 @@
         }
 
         async function rejectLeave(leaveId) {
+            if (!hasPermission('approve', 'leaves')) {
+                alert('شما دسترسی لازم برای رد مرخصی را ندارید');
+                return;
+            }
+
             try {
                 await database.ref('leaves/' + leaveId).update({
                     status: 'Rejected',
@@ -2382,6 +2503,11 @@
         }
 
         async function deleteLeave(leaveId) {
+            if (!hasPermission('delete', 'leaves')) {
+                alert('شما دسترسی لازم برای حذف درخواست مرخصی را ندارید');
+                return;
+            }
+
             if (!confirm('آیا از حذف این درخواست مرخصی مطمئن هستید؟')) {
                 return;
             }
@@ -2663,6 +2789,10 @@
         }
 
         function showAddGuardForm() {
+            if (!hasPermission('create', 'guards')) {
+                alert('شما دسترسی لازم برای افزودن محافظ را ندارید');
+                return;
+            }
             document.getElementById('addGuardForm').style.display = 'block';
         }
 
