@@ -380,6 +380,129 @@
                 height: 100px;
             }
         }
+
+        /* ==================== SIDEBAR STYLES ==================== */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1050;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            width: 45px;
+            height: 45px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            width: 280px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            z-index: 1040;
+            padding: 20px 0;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .sidebar-header h4 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li {
+            margin: 0;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-right: 3px solid transparent;
+        }
+
+        .sidebar-menu a:hover {
+            background: rgba(255,255,255,0.1);
+            border-right-color: white;
+        }
+
+        .sidebar-menu a.active {
+            background: rgba(255,255,255,0.2);
+            border-right-color: white;
+        }
+
+        .sidebar-menu i {
+            margin-left: 10px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1039;
+            display: none;
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .sidebar {
+                transform: translateX(100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .sidebar {
+                transform: translateX(0) !important;
+            }
+            
+            .main-content {
+                margin-right: 280px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -425,180 +548,302 @@
 
     <!-- سیستم اصلی -->
     <div id="mainSystem" class="main-system">
-        <!-- نوار بالایی -->
-        <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
-            <div class="container-fluid">
-                <span class="navbar-brand mb-0 h1">
-                    <i class="fas fa-shield-alt"></i> سیستم مدیریت شرکت محافظ
-                    <small class="fs-6 d-block">
-                        <span id="userWelcome">خوش آمدید</span>
-                        <span id="userBadge" class="user-badge"></span>
-                    </small>
-                </span>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <div class="navbar-nav ms-auto d-flex align-items-center">
-                        <button class="btn btn-outline-light btn-sm" onclick="logout()">
-                            <i class="fas fa-sign-out-alt"></i> خروج
-                        </button>
-                    </div>
-                </div>
+        <!-- دکمه باز/بستن منو برای موبایل -->
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- منوی کناری -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h4><i class="fas fa-shield-alt"></i> منوی سیستم</h4>
             </div>
-        </nav>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="#guards" class="active" onclick="showSection('guards')">
+                        <i class="fas fa-users"></i> مدیریت محافظان
+                    </a>
+                </li>
+                <li>
+                    <a href="#shifts" onclick="showSection('shifts')">
+                        <i class="fas fa-calendar-alt"></i> مدیریت شیفت‌ها
+                    </a>
+                </li>
+                <li>
+                    <a href="#incidents" onclick="showSection('incidents')">
+                        <i class="fas fa-exclamation-triangle"></i> گزارش حوادث
+                    </a>
+                </li>
+                <li>
+                    <a href="#leaves" onclick="showSection('leaves')">
+                        <i class="fas fa-umbrella-beach"></i> مدیریت مرخصی
+                    </a>
+                </li>
+                <li>
+                    <a href="#reports" onclick="showSection('reports')">
+                        <i class="fas fa-chart-bar"></i> گزارشات
+                    </a>
+                </li>
+            </ul>
+        </div>
 
-        <div class="container-fluid mt-4">
-            <div class="row">
-                <!-- منوی کناری -->
-                <div class="col-md-3 col-12 mb-4">
-                    <div class="list-group">
-                        <a href="#guards" class="list-group-item list-group-item-action active" onclick="showSection('guards')">
-                            <i class="fas fa-users"></i> مدیریت محافظان
-                        </a>
-                        <a href="#shifts" class="list-group-item list-group-item-action" onclick="showSection('shifts')">
-                            <i class="fas fa-calendar-alt"></i> مدیریت شیفت‌ها
-                        </a>
-                        <a href="#incidents" class="list-group-item list-group-item-action" onclick="showSection('incidents')">
-                            <i class="fas fa-exclamation-triangle"></i> گزارش حوادث
-                        </a>
-                        <a href="#leaves" class="list-group-item list-group-item-action" onclick="showSection('leaves')">
-                            <i class="fas fa-umbrella-beach"></i> مدیریت مرخصی
-                        </a>
-                        <a href="#reports" class="list-group-item list-group-item-action" onclick="showSection('reports')">
-                            <i class="fas fa-chart-bar"></i> گزارشات
-                        </a>
+        <!-- لایه محو برای موبایل -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- محتوای اصلی -->
+        <div class="main-content">
+            <!-- نوار بالایی -->
+            <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+                <div class="container-fluid">
+                    <span class="navbar-brand mb-0 h1">
+                        <i class="fas fa-shield-alt"></i> سیستم مدیریت شرکت محافظ
+                        <small class="fs-6 d-block">
+                            <span id="userWelcome">خوش آمدید</span>
+                            <span id="userBadge" class="user-badge"></span>
+                        </small>
+                    </span>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <div class="navbar-nav ms-auto d-flex align-items-center">
+                            <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i> خروج
+                            </button>
+                        </div>
                     </div>
                 </div>
+            </nav>
 
-                <!-- محتوای اصلی -->
-                <div class="col-md-9 col-12">
-                    <!-- بخش مدیریت محافظان -->
-                    <div id="guards" class="section">
-                        <!-- نمایش برای مدیران -->
-                        <div id="adminGuardView" style="display: none;">
+            <div class="container-fluid mt-4">
+                <div class="row">
+                    <!-- محتوای اصلی -->
+                    <div class="col-12">
+                        <!-- بخش مدیریت محافظان -->
+                        <div id="guards" class="section">
+                            <!-- نمایش برای مدیران -->
+                            <div id="adminGuardView" style="display: none;">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h4><i class="fas fa-users"></i> مدیریت محافظان</h4>
+                                    <button id="addGuardBtn" class="btn btn-success" onclick="showAddGuardForm()">
+                                        <i class="fas fa-user-plus"></i> افزودن محافظ
+                                    </button>
+                                </div>
+
+                                <!-- جستجو و فیلتر -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <input type="text" id="searchGuards" class="form-control" placeholder="جستجو بر اساس نام یا شماره تماس...">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="searchGuards()">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select id="filterRole" class="form-select" onchange="filterGuards()">
+                                            <option value="">همه نقش‌ها</option>
+                                            <option value="guard">محافظ</option>
+                                            <option value="manager">مدیر</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select id="filterGuardCategory" class="form-select" onchange="filterGuards()">
+                                            <option value="">همه دسته‌ها</option>
+                                            <option value="mobile">محافظ موبایل</option>
+                                            <option value="office">محافظ دفتر</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- فرم افزودن محافظ -->
+                                <div id="addGuardForm" class="card mb-4" style="display: none;">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0">ثبت محافظ جدید</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="guardForm" class="row g-3">
+                                            <div class="col-md-4 col-12">
+                                                <label class="form-label">نام</label>
+                                                <input type="text" class="form-control" id="firstName" required>
+                                            </div>
+                                            <div class="col-md-4 col-12">
+                                                <label class="form-label">تخلص</label>
+                                                <input type="text" class="form-control" id="lastName" required>
+                                            </div>
+                                            <div class="col-md-4 col-12">
+                                                <label class="form-label">نام پدر</label>
+                                                <input type="text" class="form-control" id="fatherName" required>
+                                            </div>
+                                            
+                                            <div class="col-md-6 col-12">
+                                                <label class="form-label">شماره تماس</label>
+                                                <input type="text" class="form-control" id="phoneNumber" required>
+                                            </div>
+                                            <div class="col-md-6 col-12">
+                                                <label class="form-label">رمز عبور</label>
+                                                <input type="password" class="form-control" id="guardPassword" required>
+                                            </div>
+
+                                            <!-- Location Fields -->
+                                            <div class="col-md-4 col-12">
+                                                <label class="form-label">کشور</label>
+                                                <input type="text" class="form-control" id="country" value="افغانستان" required>
+                                            </div>
+                                            <div class="col-md-4 col-12">
+                                                <label class="form-label">ولایت</label>
+                                                <input type="text" class="form-control" id="province" required>
+                                            </div>
+                                            <div class="col-md-4 col-12">
+                                                <label class="form-label">ولسوالی</label>
+                                                <input type="text" class="form-control" id="district" required>
+                                            </div>
+
+                                            <div class="col-md-6 col-12">
+                                                <label class="form-label">رتبه</label>
+                                                <select class="form-select" id="position" required>
+                                                    <option value="Guard">ګارد - Guard</option>
+                                                    <option value="Officer">افسر - Officer</option>
+                                                    <option value="Second_Lieutenant">ساتنمن - Second Lieutenant</option>
+                                                    <option value="First_Lieutenant">لومړی ساتنمن - First Lieutenant</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 col-12">
+                                                <label class="form-label">دسته محافظ</label>
+                                                <select class="form-select" id="guardCategory" required>
+                                                    <option value="mobile">محافظ موبایل (اسکورت)</option>
+                                                    <option value="office">محافظ دفتر (جستجو، نظارت، پذیرش)</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="col-md-6 col-12">
+                                                <label class="form-label">نقش کاربر</label>
+                                                <select class="form-select" id="userRole" required>
+                                                    <option value="guard">محافظ</option>
+                                                    <option value="manager">مدیر</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 col-12">
+                                                <label class="form-label">تاریخ استخدام</label>
+                                                <input type="date" class="form-control" id="hireDate" required>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label">عکس پروفایل</label>
+                                                <div class="file-input-container">
+                                                    <input type="file" class="form-control" id="profilePhoto" accept="image/*" onchange="previewImage(this)">
+                                                    <label for="profilePhoto" class="file-input-label">
+                                                        <i class="fas fa-cloud-upload-alt"></i>
+                                                        انتخاب عکس از کامپیوتر
+                                                    </label>
+                                                </div>
+                                                <img id="imagePreview" class="image-preview mt-2" alt="پیش‌نمایش عکس">
+                                                <small class="text-muted">حداکثر سایز: 2MB - فرمت‌های مجاز: JPG, PNG</small>
+                                            </div>
+                                            
+                                            <div class="col-12">
+                                                <button type="submit" class="btn btn-success me-2">
+                                                    <i class="fas fa-save"></i> ثبت محافظ
+                                                </button>
+                                                <button type="button" class="btn btn-secondary" onclick="hideAddGuardForm()">
+                                                    <i class="fas fa-times"></i> لغو
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <h5><i class="fas fa-list"></i> لیست محافظان</h5>
+                                <div id="guardsList" class="mt-3"></div>
+                            </div>
+
+                            <!-- نمایش برای محافظان عادی -->
+                            <div id="guardProfileView" style="display: none;">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h4><i class="fas fa-user"></i> پروفایل من</h4>
+                                    <button class="btn btn-outline-primary" onclick="editMyProfile()">
+                                        <i class="fas fa-edit"></i> ویرایش پروفایل
+                                    </button>
+                                </div>
+                                <div id="guardProfileDetails" class="card">
+                                    <div class="card-body">
+                                        <!-- پروفایل محافظ در اینجا نمایش داده می‌شود -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- بخش مدیریت شیفت‌ها -->
+                        <div id="shifts" class="section">
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h4><i class="fas fa-users"></i> مدیریت محافظان</h4>
-                                <button id="addGuardBtn" class="btn btn-success" onclick="showAddGuardForm()">
-                                    <i class="fas fa-user-plus"></i> افزودن محافظ
+                                <h4><i class="fas fa-calendar-alt"></i> مدیریت شیفت‌ها</h4>
+                                <button id="addShiftBtn" class="btn btn-success" onclick="showAddShiftForm()">
+                                    <i class="fas fa-plus"></i> افزودن شیفت
                                 </button>
                             </div>
 
-                            <!-- جستجو و فیلتر -->
+                            <!-- جستجو و فیلتر شیفت‌ها -->
                             <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <div class="input-group">
-                                        <input type="text" id="searchGuards" class="form-control" placeholder="جستجو بر اساس نام یا شماره تماس...">
-                                        <button class="btn btn-outline-secondary" type="button" onclick="searchGuards()">
-                                            <i class="fas fa-search"></i>
-                                        </button>
-                                    </div>
+                                <div class="col-md-4">
+                                    <input type="text" id="searchShifts" class="form-control" placeholder="جستجو بر اساس نام محافظ...">
                                 </div>
                                 <div class="col-md-3">
-                                    <select id="filterRole" class="form-select" onchange="filterGuards()">
-                                        <option value="">همه نقش‌ها</option>
-                                        <option value="guard">محافظ</option>
-                                        <option value="manager">مدیر</option>
+                                    <select id="filterShiftType" class="form-select" onchange="filterShifts()">
+                                        <option value="">همه شیفت‌ها</option>
+                                        <option value="day">شیفت روز</option>
+                                        <option value="night">شیفت شب</option>
+                                        <option value="scorting">شیفت اسکورت</option>
+                                        <option value="scorting-money-vip">اسکورت پول و افراد VIP</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <select id="filterGuardCategory" class="form-select" onchange="filterGuards()">
-                                        <option value="">همه دسته‌ها</option>
-                                        <option value="mobile">محافظ موبایل</option>
-                                        <option value="office">محافظ دفتر</option>
-                                    </select>
+                                    <input type="date" id="filterShiftDate" class="form-control" onchange="filterShifts()">
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-outline-secondary w-100" onclick="clearShiftFilters()">
+                                        <i class="fas fa-times"></i> پاک کردن
+                                    </button>
                                 </div>
                             </div>
 
-                            <!-- فرم افزودن محافظ -->
-                            <div id="addGuardForm" class="card mb-4" style="display: none;">
+                            <!-- فرم افزودن شیفت -->
+                            <div id="addShiftForm" class="card mb-4" style="display: none;">
                                 <div class="card-header bg-primary text-white">
-                                    <h5 class="mb-0">ثبت محافظ جدید</h5>
+                                    <h5 class="mb-0">ثبت شیفت جدید</h5>
                                 </div>
                                 <div class="card-body">
-                                    <form id="guardForm" class="row g-3">
-                                        <div class="col-md-4 col-12">
-                                            <label class="form-label">نام</label>
-                                            <input type="text" class="form-control" id="firstName" required>
-                                        </div>
-                                        <div class="col-md-4 col-12">
-                                            <label class="form-label">تخلص</label>
-                                            <input type="text" class="form-control" id="lastName" required>
-                                        </div>
-                                        <div class="col-md-4 col-12">
-                                            <label class="form-label">نام پدر</label>
-                                            <input type="text" class="form-control" id="fatherName" required>
-                                        </div>
-                                        
-                                        <div class="col-md-6 col-12">
-                                            <label class="form-label">شماره تماس</label>
-                                            <input type="text" class="form-control" id="phoneNumber" required>
-                                        </div>
-                                        <div class="col-md-6 col-12">
-                                            <label class="form-label">رمز عبور</label>
-                                            <input type="password" class="form-control" id="guardPassword" required>
-                                        </div>
-
-                                        <!-- Location Fields -->
-                                        <div class="col-md-4 col-12">
-                                            <label class="form-label">کشور</label>
-                                            <input type="text" class="form-control" id="country" value="افغانستان" required>
-                                        </div>
-                                        <div class="col-md-4 col-12">
-                                            <label class="form-label">ولایت</label>
-                                            <input type="text" class="form-control" id="province" required>
-                                        </div>
-                                        <div class="col-md-4 col-12">
-                                            <label class="form-label">ولسوالی</label>
-                                            <input type="text" class="form-control" id="district" required>
-                                        </div>
-
-                                        <div class="col-md-6 col-12">
-                                            <label class="form-label">رتبه</label>
-                                            <select class="form-select" id="position" required>
-                                                <option value="Guard">ګارد - Guard</option>
-                                                <option value="Officer">افسر - Officer</option>
-                                                <option value="Second_Lieutenant">ساتنمن - Second Lieutenant</option>
-                                                <option value="First_Lieutenant">لومړی ساتنمن - First Lieutenant</option>
+                                    <form id="shiftForm" class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">انتخاب محافظ</label>
+                                            <select class="form-select" id="shiftGuardId" required>
+                                                <option value="">انتخاب محافظ</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-6 col-12">
-                                            <label class="form-label">دسته محافظ</label>
-                                            <select class="form-select" id="guardCategory" required>
-                                                <option value="mobile">محافظ موبایل (اسکورت)</option>
-                                                <option value="office">محافظ دفتر (جستجو، نظارت، پذیرش)</option>
+                                        <div class="col-md-6">
+                                            <label class="form-label">نوع شیفت</label>
+                                            <select class="form-select" id="shiftType" required>
+                                                <option value="day">شیفت روز (8:00 - 16:00)</option>
+                                                <option value="night">شیفت شب (16:00 - 8:00)</option>
+                                                <option value="scorting">شیفت اسکورت</option>
+                                                <option value="scorting-money-vip">اسکورت پول و افراد VIP</option>
                                             </select>
                                         </div>
-                                        
-                                        <div class="col-md-6 col-12">
-                                            <label class="form-label">نقش کاربر</label>
-                                            <select class="form-select" id="userRole" required>
-                                                <option value="guard">محافظ</option>
-                                                <option value="manager">مدیر</option>
-                                            </select>
+                                        <div class="col-md-6">
+                                            <label class="form-label">تاریخ شیفت</label>
+                                            <input type="date" class="form-control" id="shiftDate" required>
                                         </div>
-                                        <div class="col-md-6 col-12">
-                                            <label class="form-label">تاریخ استخدام</label>
-                                            <input type="date" class="form-control" id="hireDate" required>
+                                        <div class="col-md-6">
+                                            <label class="form-label">محل خدمت</label>
+                                            <input type="text" class="form-control" id="shiftLocation" required>
                                         </div>
                                         <div class="col-12">
-                                            <label class="form-label">عکس پروفایل</label>
-                                            <div class="file-input-container">
-                                                <input type="file" class="form-control" id="profilePhoto" accept="image/*" onchange="previewImage(this)">
-                                                <label for="profilePhoto" class="file-input-label">
-                                                    <i class="fas fa-cloud-upload-alt"></i>
-                                                    انتخاب عکس از کامپیوتر
-                                                </label>
-                                            </div>
-                                            <img id="imagePreview" class="image-preview mt-2" alt="پیش‌نمایش عکس">
-                                            <small class="text-muted">حداکثر سایز: 2MB - فرمت‌های مجاز: JPG, PNG</small>
+                                            <label class="form-label">توضیحات</label>
+                                            <textarea class="form-control" id="shiftDescription" rows="3"></textarea>
                                         </div>
-                                        
                                         <div class="col-12">
                                             <button type="submit" class="btn btn-success me-2">
-                                                <i class="fas fa-save"></i> ثبت محافظ
+                                                <i class="fas fa-save"></i> ثبت شیفت
                                             </button>
-                                            <button type="button" class="btn btn-secondary" onclick="hideAddGuardForm()">
+                                            <button type="button" class="btn btn-secondary" onclick="hideAddShiftForm()">
                                                 <i class="fas fa-times"></i> لغو
                                             </button>
                                         </div>
@@ -606,363 +851,265 @@
                                 </div>
                             </div>
 
-                            <h5><i class="fas fa-list"></i> لیست محافظان</h5>
-                            <div id="guardsList" class="mt-3"></div>
+                            <h5><i class="fas fa-list"></i> لیست شیفت‌ها</h5>
+                            <div id="shiftsList" class="mt-3"></div>
                         </div>
 
-                        <!-- نمایش برای محافظان عادی -->
-                        <div id="guardProfileView" style="display: none;">
+                        <!-- بخش گزارش حوادث -->
+                        <div id="incidents" class="section">
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h4><i class="fas fa-user"></i> پروفایل من</h4>
-                                <button class="btn btn-outline-primary" onclick="editMyProfile()">
-                                    <i class="fas fa-edit"></i> ویرایش پروفایل
+                                <h4><i class="fas fa-exclamation-triangle"></i> گزارش حوادث</h4>
+                                <button id="addIncidentBtn" class="btn btn-success" onclick="showAddIncidentForm()">
+                                    <i class="fas fa-plus"></i> گزارش حادثه جدید
                                 </button>
                             </div>
-                            <div id="guardProfileDetails" class="card">
+
+                            <!-- جستجو و فیلتر حوادث -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <input type="text" id="searchIncidents" class="form-control" placeholder="جستجو بر اساس عنوان یا نام محافظ...">
+                                </div>
+                                <div class="col-md-3">
+                                    <select id="filterSeverity" class="form-select" onchange="filterIncidents()">
+                                        <option value="">همه سطوح</option>
+                                        <option value="Low">کم</option>
+                                        <option value="Medium">متوسط</option>
+                                        <option value="High">زیاد</option>
+                                        <option value="Critical">بحرانی</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select id="filterStatus" class="form-select" onchange="filterIncidents()">
+                                        <option value="">همه وضعیت‌ها</option>
+                                        <option value="Reported">گزارش شده</option>
+                                        <option value="Under Investigation">در حال بررسی</option>
+                                        <option value="Resolved">حل شده</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-outline-secondary w-100" onclick="clearIncidentFilters()">
+                                        <i class="fas fa-times"></i> پاک کردن
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- فرم افزودن حادثه -->
+                            <div id="addIncidentForm" class="card mb-4" style="display: none;">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">ثبت حادثه جدید</h5>
+                                </div>
                                 <div class="card-body">
-                                    <!-- پروفایل محافظ در اینجا نمایش داده می‌شود -->
+                                    <form id="incidentForm" class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">انتخاب محافظ</label>
+                                            <select class="form-select" id="incidentGuardId" required>
+                                                <option value="">انتخاب محافظ</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">عنوان حادثه</label>
+                                            <input type="text" class="form-control" id="incidentTitle" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">تاریخ حادثه</label>
+                                            <input type="datetime-local" class="form-control" id="incidentDate" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">محل حادثه</label>
+                                            <input type="text" class="form-control" id="incidentLocation" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">سطح حادثه</label>
+                                            <select class="form-select" id="incidentSeverity" required>
+                                                <option value="Low">کم</option>
+                                                <option value="Medium">متوسط</option>
+                                                <option value="High">زیاد</option>
+                                                <option value="Critical">بحرانی</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label">شرح حادثه</label>
+                                            <textarea class="form-control" id="incidentDescription" rows="4" required></textarea>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label">اقدامات انجام شده</label>
+                                            <textarea class="form-control" id="incidentActions" rows="3"></textarea>
+                                        </div>
+                                        <div class="col-12">
+                                            <button type="submit" class="btn btn-success me-2">
+                                                <i class="fas fa-save"></i> ثبت حادثه
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" onclick="hideAddIncidentForm()">
+                                                <i class="fas fa-times"></i> لغو
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- بخش مدیریت شیفت‌ها -->
-                    <div id="shifts" class="section">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4><i class="fas fa-calendar-alt"></i> مدیریت شیفت‌ها</h4>
-                            <button id="addShiftBtn" class="btn btn-success" onclick="showAddShiftForm()">
-                                <i class="fas fa-plus"></i> افزودن شیفت
-                            </button>
+                            <h5><i class="fas fa-list"></i> لیست حوادث</h5>
+                            <div id="incidentsList" class="mt-3"></div>
                         </div>
 
-                        <!-- جستجو و فیلتر شیفت‌ها -->
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <input type="text" id="searchShifts" class="form-control" placeholder="جستجو بر اساس نام محافظ...">
-                            </div>
-                            <div class="col-md-3">
-                                <select id="filterShiftType" class="form-select" onchange="filterShifts()">
-                                    <option value="">همه شیفت‌ها</option>
-                                    <option value="day">شیفت روز</option>
-                                    <option value="night">شیفت شب</option>
-                                    <option value="scorting">شیفت اسکورت</option>
-                                    <option value="scorting-money-vip">اسکورت پول و افراد VIP</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <input type="date" id="filterShiftDate" class="form-control" onchange="filterShifts()">
-                            </div>
-                            <div class="col-md-2">
-                                <button class="btn btn-outline-secondary w-100" onclick="clearShiftFilters()">
-                                    <i class="fas fa-times"></i> پاک کردن
+                        <!-- بخش مدیریت مرخصی -->
+                        <div id="leaves" class="section">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h4><i class="fas fa-umbrella-beach"></i> مدیریت مرخصی</h4>
+                                <button id="addLeaveBtn" class="btn btn-success" onclick="showAddLeaveForm()">
+                                    <i class="fas fa-plus"></i> درخواست مرخصی جدید
                                 </button>
                             </div>
+
+                            <!-- جستجو و فیلتر مرخصی‌ها -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <input type="text" id="searchLeaves" class="form-control" placeholder="جستجو بر اساس نام محافظ...">
+                                </div>
+                                <div class="col-md-3">
+                                    <select id="filterLeaveType" class="form-select" onchange="filterLeaves()">
+                                        <option value="">همه انواع</option>
+                                        <option value="Annual">مرخصی روزانه</option>
+                                        <option value="Sick">مرخصی مریضی</option>
+                                        <option value="Emergency">مرخصی اضطراری</option>
+                                        <option value="Maternity">مرخصی زایمان</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select id="filterLeaveStatus" class="form-select" onchange="filterLeaves()">
+                                        <option value="">همه وضعیت‌ها</option>
+                                        <option value="Pending">در انتظار</option>
+                                        <option value="Approved">تایید شده</option>
+                                        <option value="Rejected">رد شده</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-outline-secondary w-100" onclick="clearLeaveFilters()">
+                                        <i class="fas fa-times"></i> پاک کردن
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- فرم افزودن مرخصی -->
+                            <div id="addLeaveForm" class="card mb-4" style="display: none;">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">درخواست مرخصی جدید</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="leaveForm" class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">انتخاب محافظ</label>
+                                            <select class="form-select" id="leaveGuardId" required>
+                                                <option value="">انتخاب محافظ</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">نوع مرخصی</label>
+                                            <select class="form-select" id="leaveType" required>
+                                                <option value="Annual">مرخصی روزانه</option>
+                                                <option value="Sick">مرخصی مریضی</option>
+                                                <option value="Emergency">مرخصی اضطراری</option>
+                                                <option value="Maternity">مرخصی زایمان</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">تاریخ شروع</label>
+                                            <input type="date" class="form-control" id="leaveStartDate" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">تاریخ پایان</label>
+                                            <input type="date" class="form-control" id="leaveEndDate" required>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label">دلیل مرخصی</label>
+                                            <textarea class="form-control" id="leaveReason" rows="3" required></textarea>
+                                        </div>
+                                        <div class="col-12">
+                                            <button type="submit" class="btn btn-success me-2">
+                                                <i class="fas fa-save"></i> ثبت درخواست
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" onclick="hideAddLeaveForm()">
+                                                <i class="fas fa-times"></i> لغو
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <h5><i class="fas fa-list"></i> لیست درخواست‌های مرخصی</h5>
+                            <div id="leavesList" class="mt-3"></div>
                         </div>
 
-                        <!-- فرم افزودن شیفت -->
-                        <div id="addShiftForm" class="card mb-4" style="display: none;">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0">ثبت شیفت جدید</h5>
-                            </div>
-                            <div class="card-body">
-                                <form id="shiftForm" class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">انتخاب محافظ</label>
-                                        <select class="form-select" id="shiftGuardId" required>
-                                            <option value="">انتخاب محافظ</option>
-                                        </select>
+                        <!-- بخش گزارشات -->
+                        <div id="reports" class="section">
+                            <h4><i class="fas fa-chart-bar"></i> گزارشات و آمار</h4>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="card text-center bg-primary text-white">
+                                        <div class="card-body">
+                                            <h3 id="totalGuards">0</h3>
+                                            <p class="mb-0">تعداد محافظان</p>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">نوع شیفت</label>
-                                        <select class="form-select" id="shiftType" required>
-                                            <option value="day">شیفت روز (8:00 - 16:00)</option>
-                                            <option value="night">شیفت شب (16:00 - 8:00)</option>
-                                            <option value="scorting">شیفت اسکورت</option>
-                                            <option value="scorting-money-vip">اسکورت پول و افراد VIP</option>
-                                        </select>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="card text-center bg-success text-white">
+                                        <div class="card-body">
+                                            <h3 id="totalShifts">0</h3>
+                                            <p class="mb-0">شیفت‌های فعال</p>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">تاریخ شیفت</label>
-                                        <input type="date" class="form-control" id="shiftDate" required>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="card text-center bg-warning text-dark">
+                                        <div class="card-body">
+                                            <h3 id="totalIncidents">0</h3>
+                                            <p class="mb-0">حوادث گزارش شده</p>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">محل خدمت</label>
-                                        <input type="text" class="form-control" id="shiftLocation" required>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label">توضیحات</label>
-                                        <textarea class="form-control" id="shiftDescription" rows="3"></textarea>
-                                    </div>
-                                    <div class="col-12">
-                                        <button type="submit" class="btn btn-success me-2">
-                                            <i class="fas fa-save"></i> ثبت شیفت
-                                        </button>
-                                        <button type="button" class="btn btn-secondary" onclick="hideAddShiftForm()">
-                                            <i class="fas fa-times"></i> لغو
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                        <h5><i class="fas fa-list"></i> لیست شیفت‌ها</h5>
-                        <div id="shiftsList" class="mt-3"></div>
-                    </div>
-
-                    <!-- بخش گزارش حوادث -->
-                    <div id="incidents" class="section">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4><i class="fas fa-exclamation-triangle"></i> گزارش حوادث</h4>
-                            <button id="addIncidentBtn" class="btn btn-success" onclick="showAddIncidentForm()">
-                                <i class="fas fa-plus"></i> گزارش حادثه جدید
-                            </button>
-                        </div>
-
-                        <!-- جستجو و فیلتر حوادث -->
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <input type="text" id="searchIncidents" class="form-control" placeholder="جستجو بر اساس عنوان یا نام محافظ...">
-                            </div>
-                            <div class="col-md-3">
-                                <select id="filterSeverity" class="form-select" onchange="filterIncidents()">
-                                    <option value="">همه سطوح</option>
-                                    <option value="Low">کم</option>
-                                    <option value="Medium">متوسط</option>
-                                    <option value="High">زیاد</option>
-                                    <option value="Critical">بحرانی</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <select id="filterStatus" class="form-select" onchange="filterIncidents()">
-                                    <option value="">همه وضعیت‌ها</option>
-                                    <option value="Reported">گزارش شده</option>
-                                    <option value="Under Investigation">در حال بررسی</option>
-                                    <option value="Resolved">حل شده</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <button class="btn btn-outline-secondary w-100" onclick="clearIncidentFilters()">
-                                    <i class="fas fa-times"></i> پاک کردن
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- فرم افزودن حادثه -->
-                        <div id="addIncidentForm" class="card mb-4" style="display: none;">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0">ثبت حادثه جدید</h5>
-                            </div>
-                            <div class="card-body">
-                                <form id="incidentForm" class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">انتخاب محافظ</label>
-                                        <select class="form-select" id="incidentGuardId" required>
-                                            <option value="">انتخاب محافظ</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">عنوان حادثه</label>
-                                        <input type="text" class="form-control" id="incidentTitle" required>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">تاریخ حادثه</label>
-                                        <input type="datetime-local" class="form-control" id="incidentDate" required>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">محل حادثه</label>
-                                        <input type="text" class="form-control" id="incidentLocation" required>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">سطح حادثه</label>
-                                        <select class="form-select" id="incidentSeverity" required>
-                                            <option value="Low">کم</option>
-                                            <option value="Medium">متوسط</option>
-                                            <option value="High">زیاد</option>
-                                            <option value="Critical">بحرانی</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label">شرح حادثه</label>
-                                        <textarea class="form-control" id="incidentDescription" rows="4" required></textarea>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label">اقدامات انجام شده</label>
-                                        <textarea class="form-control" id="incidentActions" rows="3"></textarea>
-                                    </div>
-                                    <div class="col-12">
-                                        <button type="submit" class="btn btn-success me-2">
-                                            <i class="fas fa-save"></i> ثبت حادثه
-                                        </button>
-                                        <button type="button" class="btn btn-secondary" onclick="hideAddIncidentForm()">
-                                            <i class="fas fa-times"></i> لغو
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                        <h5><i class="fas fa-list"></i> لیست حوادث</h5>
-                        <div id="incidentsList" class="mt-3"></div>
-                    </div>
-
-                    <!-- بخش مدیریت مرخصی -->
-                    <div id="leaves" class="section">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4><i class="fas fa-umbrella-beach"></i> مدیریت مرخصی</h4>
-                            <button id="addLeaveBtn" class="btn btn-success" onclick="showAddLeaveForm()">
-                                <i class="fas fa-plus"></i> درخواست مرخصی جدید
-                            </button>
-                        </div>
-
-                        <!-- جستجو و فیلتر مرخصی‌ها -->
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <input type="text" id="searchLeaves" class="form-control" placeholder="جستجو بر اساس نام محافظ...">
-                            </div>
-                            <div class="col-md-3">
-                                <select id="filterLeaveType" class="form-select" onchange="filterLeaves()">
-                                    <option value="">همه انواع</option>
-                                    <option value="Annual">مرخصی روزانه</option>
-                                    <option value="Sick">مرخصی مریضی</option>
-                                    <option value="Emergency">مرخصی اضطراری</option>
-                                    <option value="Maternity">مرخصی زایمان</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <select id="filterLeaveStatus" class="form-select" onchange="filterLeaves()">
-                                    <option value="">همه وضعیت‌ها</option>
-                                    <option value="Pending">در انتظار</option>
-                                    <option value="Approved">تایید شده</option>
-                                    <option value="Rejected">رد شده</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <button class="btn btn-outline-secondary w-100" onclick="clearLeaveFilters()">
-                                    <i class="fas fa-times"></i> پاک کردن
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- فرم افزودن مرخصی -->
-                        <div id="addLeaveForm" class="card mb-4" style="display: none;">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0">درخواست مرخصی جدید</h5>
-                            </div>
-                            <div class="card-body">
-                                <form id="leaveForm" class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">انتخاب محافظ</label>
-                                        <select class="form-select" id="leaveGuardId" required>
-                                            <option value="">انتخاب محافظ</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">نوع مرخصی</label>
-                                        <select class="form-select" id="leaveType" required>
-                                            <option value="Annual">مرخصی روزانه</option>
-                                            <option value="Sick">مرخصی مریضی</option>
-                                            <option value="Emergency">مرخصی اضطراری</option>
-                                            <option value="Maternity">مرخصی زایمان</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">تاریخ شروع</label>
-                                        <input type="date" class="form-control" id="leaveStartDate" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">تاریخ پایان</label>
-                                        <input type="date" class="form-control" id="leaveEndDate" required>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label">دلیل مرخصی</label>
-                                        <textarea class="form-control" id="leaveReason" rows="3" required></textarea>
-                                    </div>
-                                    <div class="col-12">
-                                        <button type="submit" class="btn btn-success me-2">
-                                            <i class="fas fa-save"></i> ثبت درخواست
-                                        </button>
-                                        <button type="button" class="btn btn-secondary" onclick="hideAddLeaveForm()">
-                                            <i class="fas fa-times"></i> لغو
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                        <h5><i class="fas fa-list"></i> لیست درخواست‌های مرخصی</h5>
-                        <div id="leavesList" class="mt-3"></div>
-                    </div>
-
-                    <!-- بخش گزارشات -->
-                    <div id="reports" class="section">
-                        <h4><i class="fas fa-chart-bar"></i> گزارشات و آمار</h4>
-                        
-                        <div class="row mb-4">
-                            <div class="col-md-3 col-6 mb-3">
-                                <div class="card text-center bg-primary text-white">
-                                    <div class="card-body">
-                                        <h3 id="totalGuards">0</h3>
-                                        <p class="mb-0">تعداد محافظان</p>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="card text-center bg-info text-white">
+                                        <div class="card-body">
+                                            <h3 id="pendingLeaves">0</h3>
+                                            <p class="mb-0">مرخصی‌های در انتظار</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-3 col-6 mb-3">
-                                <div class="card text-center bg-success text-white">
-                                    <div class="card-body">
-                                        <h3 id="totalShifts">0</h3>
-                                        <p class="mb-0">شیفت‌های فعال</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6 mb-3">
-                                <div class="card text-center bg-warning text-dark">
-                                    <div class="card-body">
-                                        <h3 id="totalIncidents">0</h3>
-                                        <p class="mb-0">حوادث گزارش شده</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6 mb-3">
-                                <div class="card text-center bg-info text-white">
-                                    <div class="card-body">
-                                        <h3 id="pendingLeaves">0</h3>
-                                        <p class="mb-0">مرخصی‌های در انتظار</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <div class="card">
-                                    <div class="card-header bg-secondary text-white">
-                                        <h5 class="mb-0">توزیع محافظان بر اساس رتبه</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <div class="card">
+                                        <div class="card-header bg-secondary text-white">
+                                            <h5 class="mb-0">توزیع محافظان بر اساس رتبه</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="positionChart"></div>
+                                        </div>
                                     </div>
-                                    <div class="card-body">
-                                        <div id="positionChart"></div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <div class="card">
+                                        <div class="card-header bg-secondary text-white">
+                                            <h5 class="mb-0">آمار حوادث بر اساس سطح</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="incidentChart"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-4">
-                                <div class="card">
-                                    <div class="card-header bg-secondary text-white">
-                                        <h5 class="mb-0">آمار حوادث بر اساس سطح</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div id="incidentChart"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="card">
-                                    <div class="card-header bg-secondary text-white">
-                                        <h5 class="mb-0">گزارش فعالیت‌های اخیر</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div id="recentActivities"></div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header bg-secondary text-white">
+                                            <h5 class="mb-0">گزارش فعالیت‌های اخیر</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="recentActivities"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1136,6 +1283,44 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // ==================== SIDEBAR TOGGLE FUNCTIONALITY ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            // Toggle sidebar on button click
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('open');
+                sidebarOverlay.classList.toggle('active');
+            });
+            
+            // Close sidebar when clicking on overlay
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('active');
+            });
+            
+            // Close sidebar when clicking on a menu item (for mobile)
+            const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 992) {
+                        sidebar.classList.remove('open');
+                        sidebarOverlay.classList.remove('active');
+                    }
+                });
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 992) {
+                    sidebar.classList.remove('open');
+                    sidebarOverlay.classList.remove('active');
+                }
+            });
+        });
+
         // ==================== FIREBASE CONFIGURATION ====================
         const firebaseConfig = {
             apiKey: "AIzaSyA_s-rHStZQPzuEjb_FpClS3Aaac1sidYQ",
@@ -2780,10 +2965,15 @@
                 section.style.display = 'none';
             });
             
-            document.querySelectorAll('.list-group-item').forEach(item => {
+            document.querySelectorAll('.sidebar-menu a').forEach(item => {
                 item.classList.remove('active');
             });
-            event.target.classList.add('active');
+            
+            // Mark the active menu item
+            const activeMenuItem = document.querySelector(`.sidebar-menu a[href="#${sectionId}"]`);
+            if (activeMenuItem) {
+                activeMenuItem.classList.add('active');
+            }
             
             document.getElementById(sectionId).style.display = 'block';
         }
