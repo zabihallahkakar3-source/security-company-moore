@@ -6,12 +6,20 @@
     <title>AHG guard managemant</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Poppins", sans-serif;
+        }
+
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
@@ -20,105 +28,158 @@
             --danger-color: #e74c3c;
         }
 
-        * {
-            box-sizing: border-box;
-        }
-
-        /* استایل صفحه لاگین */
+        /* ✨ Glassmorphism Login Styles */
         .auth-container {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            background: url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e")
+                        no-repeat center center/cover;
             display: flex;
-            align-items: center;
             justify-content: center;
-            padding: 20px;
-        }
-
-        .auth-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 450px;
-            padding: 40px 30px;
+            align-items: center;
             position: relative;
             overflow: hidden;
         }
 
-        .auth-card::before {
-            content: '';
+        /* Lighter overlay to show more of the background picture */
+        .auth-container::before {
+            content: "";
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+            inset: 0;
+            background: rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(2px);
         }
 
-        .auth-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .auth-logo {
-            width: 80px;
-            height: 80px;
-            background: var(--primary-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
+        .glass-container {
+            position: relative;
+            z-index: 10;
+            width: 350px;
+            padding: 40px 30px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.10);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.25);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
             color: white;
-            font-size: 2rem;
+            text-align: center;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
+        .glass-container h2 {
+            margin-bottom: 30px;
+            font-size: 28px;
             font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--primary-color);
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
         }
 
-        .form-control {
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
+        .input-box {
+            width: 100%;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .input-box input {
+            width: 100%;
             padding: 12px 15px;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            background: rgba(255, 255, 255, 0.25);
+            color: #fff;
+            font-size: 16px;
             transition: all 0.3s ease;
         }
 
-        .form-control:focus {
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        .input-box input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
         }
 
-        .btn-auth {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        .input-box input:focus {
+            background: rgba(255, 255, 255, 0.35);
+            box-shadow: 0 0 8px rgba(255,255,255,0.5);
+        }
+
+        .btn-glass {
+            width: 100%;
+            margin-top: 25px;
+            padding: 12px;
             border: none;
             border-radius: 10px;
-            padding: 12px 30px;
-            color: white;
-            font-weight: 600;
-            width: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .btn-auth:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255,255,255,0.5);
         }
 
+        .links {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .links a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Decorative glowing circles */
+        .circle1, .circle2 {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            filter: blur(100px);
+            z-index: 1;
+        }
+
+        .circle1 {
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            left: -100px;
+        }
+
+        .circle2 {
+            width: 250px;
+            height: 250px;
+            bottom: -80px;
+            right: -80px;
+        }
+
+        /* Info alert styling for glass container */
+        .glass-alert {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .glass-alert small {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Original System Styles */
         .main-system {
             display: none;
         }
 
         /* استایل‌های اصلی سیستم */
-        body {
+        body.main-system-active {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8f9fa;
+            overflow: auto;
         }
 
         .navbar-brand {
@@ -347,7 +408,7 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            .auth-card {
+            .glass-container {
                 padding: 30px 20px;
                 margin: 10px;
             }
@@ -367,7 +428,7 @@
         }
 
         @media (max-width: 576px) {
-            .auth-card {
+            .glass-container {
                 padding: 25px 15px;
             }
             
@@ -513,33 +574,34 @@
 
     <!-- سیستم لاگین -->
     <div id="loginSystem" class="auth-container">
-        <div class="auth-card">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+
+        <div class="glass-container">
             <div class="auth-header">
-                <div class="auth-logo">
-                    <i class="fas fa-shield-alt"></i>
+                <div class="auth-logo" style="background: transparent; margin-bottom: 20px;">
+                    <i class="fas fa-shield-alt" style="font-size: 3rem; color: white;"></i>
                 </div>
-                <h3>ورود به سیستم</h3>
-                <p class="text-muted">لطفا اطلاعات کاربری خود را وارد کنید</p>
+                <h2>ورود به سیستم</h2>
+                <p style="color: rgba(255,255,255,0.8); margin-bottom: 30px;">لطفا اطلاعات کاربری خود را وارد کنید</p>
             </div>
             
             <form id="loginForm">
-                <div class="form-group">
-                    <label class="form-label">شماره تماس</label>
-                    <input type="text" class="form-control" id="loginPhone" required value="**********">
+                <div class="input-box">
+                    <input type="text" id="loginPhone" required placeholder="شماره تماس" value="0780060833">
                 </div>
-                <div class="form-group">
-                    <label class="form-label">رمز عبور</label>
-                    <input type="password" class="form-control" id="loginPassword" required value="*******">
+                <div class="input-box">
+                    <input type="password" id="loginPassword" required placeholder="رمز عبور" value="admin123">
                 </div>
-                <button type="submit" class="btn btn-auth mb-3">
+                <button type="submit" class="btn-glass">
                     <i class="fas fa-sign-in-alt"></i> ورود به سیستم
                 </button>
                 
-                <div class="alert alert-info">
+                <div class="glass-alert">
                     <small>
                         <i class="fas fa-info-circle"></i> 
-                        <strong>Willcome:</strong><br>
-                        To the AHG guards Database
+                        <strong>خوش آمدید:</strong><br>
+                        به پایگاه داده محافظان AHG
                     </small>
                 </div>
             </form>
@@ -1560,11 +1622,13 @@
         function showMainSystem() {
             document.getElementById('loginSystem').style.display = 'none';
             document.getElementById('mainSystem').style.display = 'block';
+            document.body.classList.add('main-system-active');
         }
 
         function showLoginSystem() {
             document.getElementById('loginSystem').style.display = 'flex';
             document.getElementById('mainSystem').style.display = 'none';
+            document.body.classList.remove('main-system-active');
             currentUser = null;
         }
 
@@ -3117,4 +3181,3 @@
     </script>
 </body>
 </html>
-
